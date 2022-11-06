@@ -9,6 +9,7 @@ ninja
 ./fractal
 ```
 
+```
 # Keybinds
 <br>
 Up: w
@@ -30,3 +31,4 @@ Up-Arrow: Increase iterations
 Down-Arrow: Decrease iterations
 <br>
 P: save image in Mandelbrot-set/src/fractal.jpg
+```
