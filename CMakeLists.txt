@@ -6,10 +6,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_executable(fractorium)
+add_executable(fractal)
 
 target_sources(
-	fractorium
+	fractal
 	PUBLIC
 	include/mandelbrot.hpp
 	
@@ -17,7 +17,7 @@ target_sources(
 	src/mandelbrot.cpp
 )
 
-target_compile_options(fractorium PRIVATE -Wall -Wextra -Wpedantic)
+target_compile_options(fractal PRIVATE -Wall -Wextra -Wpedantic)
 
-target_include_directories(fractorium PUBLIC include/)
-target_link_libraries(fractorium -lsfml-graphics -lsfml-window -lsfml-system)
+target_include_directories(fractal PUBLIC include/)
+target_link_libraries(fractal -lsfml-graphics -lsfml-window -lsfml-system)
