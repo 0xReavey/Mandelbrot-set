@@ -47,11 +47,7 @@ int main() {
                 long double px = std::lerp(-2.0, 2.0, static_cast<long double>(x) / window_size);
                 long double py = std::lerp(-2.0, 2.0, static_cast<long double>(y) / window_size);
                 int value = inSet(zoom * std::complex<long double>(py, px) + xyoff, iterations);
-                if (value == 0) {
-                    pixels[x][y] = sf::Color(0, 0, 0);
-                } else {
-                    pixels[x][y] = sf::Color(5 * value % 255, 3 * value % 155, 5 * value % 255);
-                }
+                pixels[x][y] = sf::Color(5 * value % 255, 3 * value % 155, 5 * value % 255);
             }
         }
     };
