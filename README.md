@@ -12,22 +12,13 @@ ninja
 # Keybinds
 ```
 Up: w
-<br>
 Down: s
-<br>
 Left: a
-<br>
 Right: d
-<br>
 K: zoom
-<br>
 J: unzoom
-<br>
 Left-Click: zoom into point, Right click un-zoom from point.
-<br>
 Up-Arrow: Increase iterations
-<br>
 Down-Arrow: Decrease iterations
-<br>
 P: save image in Mandelbrot-set/src/fractal.jpg
 ```
