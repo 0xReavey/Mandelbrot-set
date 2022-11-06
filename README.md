@@ -9,7 +9,7 @@ ninja
 ./fractal
 ```
 
-#Keybinds
+# Keybinds
 <br>
 Up: w
 <br>
