@@ -7,6 +7,7 @@
 #include "mandelbrot.hpp"
 
 static constexpr std::size_t window_size = 600;
+static constexpr uint8_t red = 3, green = 7, blue = 5;
 
 int main() {
     sf::RenderWindow window(sf::VideoMode(window_size, window_size), "Fractal", sf::Style::Close);
@@ -47,7 +48,7 @@ int main() {
                 long double px = std::lerp(-2.0, 2.0, static_cast<long double>(x) / window_size);
                 long double py = std::lerp(-2.0, 2.0, static_cast<long double>(y) / window_size);
                 int value = inSet(zoom * std::complex<long double>(py, px) + xyoff, iterations);
-                pixels[x][y] = sf::Color(5 * value % 255, 3 * value % 155, 5 * value % 255);
+                pixels[x][y] = sf::Color(red * value % 255, green * value % 255, blue * value % 255);
             }
         }
     };
