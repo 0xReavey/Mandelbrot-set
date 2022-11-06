@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <array>
+#include <cmath>
 #include <future>
 #include <iomanip>
 #include <iostream>
@@ -7,10 +8,42 @@
 #include "mandelbrot.hpp"
 
 static constexpr std::size_t window_size = 600;
-static constexpr uint8_t red = 3, green = 7, blue = 5;
+
+sf::Color hsvColor(int hue, float sat, float val) {
+    if (sat == 0) return {0, 0, 0};
+
+    hue %= 360;
+    sat /= 100;
+    val /= 100;
+
+    uint8_t h = hue / 60;
+    float f = float(hue) / 60 - h;
+    float p = val * (1.f - sat);
+    float q = val * (1.f - sat * f);
+    float t = val * (1.f - sat * (1 - f));
+
+    switch (h) {
+        case 1:
+            return {uint8_t(q * 255), uint8_t(val * 255), uint8_t(p * 255)};
+        case 2:
+            return {uint8_t(p * 255), uint8_t(val * 255), uint8_t(t * 255)};
+        case 3:
+            return {uint8_t(p * 255), uint8_t(q * 255), uint8_t(val * 255)};
+        case 4:
+            return {uint8_t(t * 255), uint8_t(p * 255), uint8_t(val * 255)};
+        case 5:
+            return {uint8_t(val * 255), uint8_t(p * 255), uint8_t(q * 255)};
+        default:
+            return {uint8_t(val * 255), uint8_t(t * 255), uint8_t(p * 255)};
+    }
+}
 
 int main() {
     sf::RenderWindow window(sf::VideoMode(window_size, window_size), "Fractal", sf::Style::Close);
+    window.setFramerateLimit(60);
+
+    sf::Clock clock;
+
     sf::Image output_image;
     output_image.create(window_size, window_size);
 
@@ -31,10 +64,10 @@ int main() {
     text.setFillColor(sf::Color::White);
     text.setOutlineThickness(2);
     text.setOutlineColor(sf::Color::Black);
-    text.setPosition(10, 5);
 
-    long double zoom = 1.0;
     int iterations = 250;
+    bool calculate = true;
+    long double zoom = 1.f;
     std::complex<long double> xyoff;
     std::array<std::array<sf::Color, window_size>, window_size> pixels;
     auto futures = std::vector<std::future<void>>(std::thread::hardware_concurrency());
@@ -45,18 +78,14 @@ int main() {
     const auto make_pixels = [&pixels, &zoom, &xyoff, &iterations](const size_t start, const size_t end) {
         for (size_t x = start; x < end; x++) {
             for (size_t y = 0; y < window_size; y++) {
-                long double px = std::lerp(-2.0, 2.0, static_cast<long double>(x) / window_size);
-                long double py = std::lerp(-2.0, 2.0, static_cast<long double>(y) / window_size);
+                long double px = std::lerp(-2.f, 2.f, static_cast<long double>(x) / window_size);
+                long double py = std::lerp(-2.f, 2.f, static_cast<long double>(y) / window_size);
                 int value = inSet(zoom * std::complex<long double>(py, px) + xyoff, iterations);
-                pixels[x][y] = sf::Color(red * value % 255, green * value % 255, blue * value % 255);
+                pixels[x][y] = sf::Color(hsvColor(value, (value == 0) ? 0 : 75, 100));
             }
         }
     };
 
-    sf::Clock clock;
-    bool recalculate = true;
-
-    window.setFramerateLimit(60);
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -64,7 +93,7 @@ int main() {
                 window.close();
             }
             if (event.type == sf::Event::KeyPressed) {
-                recalculate = true;
+                calculate = true;
                 if (event.key.code == sf::Keyboard::S) {
                     xyoff = {xyoff.real(), xyoff.imag() + zoom / 27};
                 } else if (event.key.code == sf::Keyboard::W) {
@@ -85,15 +114,15 @@ int main() {
                     output_image.saveToFile("fractal.jpg");
                 }
             } else if (event.type == sf::Event::MouseButtonPressed) {
-                recalculate = true;
+                calculate = true;
                 if (event.mouseButton.button == sf::Mouse::Left) {
-                    xyoff += std::complex<long double>(std::lerp(-2.0, 2.0, static_cast<long double>(event.mouseButton.x) / window_size),
-                                                       std::lerp(-2.0, 2.0, static_cast<long double>(event.mouseButton.y) / window_size))
+                    xyoff += std::complex<long double>(std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.x) / window_size),
+                                                       std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.y) / window_size))
                              * zoom;
                     zoom /= 1.5;
                 } else if (event.mouseButton.button == sf::Mouse::Right) {
-                    xyoff -= std::complex<long double>(std::lerp(-2.0, 2.0, static_cast<long double>(event.mouseButton.x) / window_size),
-                                                       std::lerp(-2.0, 2.0, static_cast<long double>(event.mouseButton.y) / window_size))
+                    xyoff -= std::complex<long double>(std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.x) / window_size),
+                                                       std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.y) / window_size))
                              * zoom;
                     zoom *= 1.5;
                 }
@@ -102,16 +131,15 @@ int main() {
 
         window.clear();
 
-        if (recalculate) {
+        if (calculate) {
             for (size_t i = 0; i < parts; i++) {
                 futures[i] = std::async(std::launch::async, make_pixels, i * parts_size, (i + 1) * parts_size);
             }
             for (auto& future : futures) {
                 future.wait();
             }
-
             output_image.create(window_size, window_size, reinterpret_cast<uint8_t*>(pixels.data()));
-            recalculate = false;
+            calculate = false;
         }
 
         output_texture.update(output_image);
