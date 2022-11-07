@@ -72,8 +72,8 @@ int main() {
     std::array<std::array<sf::Color, window_size>, window_size> pixels;
     auto futures = std::vector<std::future<void>>(std::thread::hardware_concurrency());
 
-    const size_t parts = futures.size();
-    const size_t parts_size = window_size / parts;
+    const size_t render_rows = futures.size();
+    const size_t render_rows_size = window_size / render_rows;
 
     const auto make_pixels = [&pixels, &zoom, &xyoff, &iterations](const size_t start, const size_t end) {
         for (size_t x = start; x < end; x++) {
@@ -103,9 +103,9 @@ int main() {
                 } else if (event.key.code == sf::Keyboard::A) {
                     xyoff = {xyoff.real() - zoom / 27, xyoff.imag()};
                 } else if (event.key.code == sf::Keyboard::J) {
-                    zoom *= 1.5;
+                    zoom *= 1.5f;
                 } else if (event.key.code == sf::Keyboard::K) {
-                    zoom /= 1.5;
+                    zoom /= 1.5f;
                 } else if (event.key.code == sf::Keyboard::Up) {
                     iterations += 25;
                 } else if (event.key.code == sf::Keyboard::Down) {
@@ -119,12 +119,12 @@ int main() {
                     xyoff += std::complex<long double>(std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.x) / window_size),
                                                        std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.y) / window_size))
                              * zoom;
-                    zoom /= 1.5;
+                    zoom /= 1.5f;
                 } else if (event.mouseButton.button == sf::Mouse::Right) {
                     xyoff -= std::complex<long double>(std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.x) / window_size),
                                                        std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.y) / window_size))
                              * zoom;
-                    zoom *= 1.5;
+                    zoom *= 1.5f;
                 }
             }
         }
@@ -132,8 +132,8 @@ int main() {
         window.clear();
 
         if (calculate) {
-            for (size_t i = 0; i < parts; i++) {
-                futures[i] = std::async(std::launch::async, make_pixels, i * parts_size, (i + 1) * parts_size);
+            for (size_t i = 0; i < render_rows; i++) {
+                futures[i] = std::async(std::launch::async, make_pixels, i * render_rows_size, (i + 1) * render_rows_size);
             }
             for (auto& future : futures) {
                 future.wait();

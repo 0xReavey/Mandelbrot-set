@@ -17,8 +17,9 @@ Left: a
 Right: d
 K: zoom
 J: unzoom
-Left-Click: zoom into point, Right click un-zoom from point.
-Up-Arrow: Increase iterations
-Down-Arrow: Decrease iterations
+Left-Click: zoom into point.
+Right-click un-zoom from point.
+Up-Arrow: Increase iterations.
+Down-Arrow: Decrease iterations.
 P: save image in Mandelbrot-set/src/fractal.jpg
 ```
