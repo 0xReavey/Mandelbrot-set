@@ -75,7 +75,7 @@ int main() {
             for (size_t y = 0; y < window_size; y++) {
                 long double px = std::lerp(-2.f, 2.f, static_cast<long double>(x) / window_size);
                 long double py = std::lerp(-2.f, 2.f, static_cast<long double>(y) / window_size);
-                int value = IsInsideSet(zoom * std::complex<long double>(py, px) + xyoff, iterations);
+                int value = InSet(zoom * std::complex<long double>(py, px) + xyoff, iterations);
                 pixels[x][y] = hsvColor(value, (value == 0) ? 0 : 75, 100);
             }
         }
