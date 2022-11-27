@@ -10,31 +10,26 @@
 static constexpr std::size_t window_size = 600;
 
 sf::Color hsvColor(int hue, float sat, float val) {
-    if (sat == 0) return {0, 0, 0};
+    if (sat == 0)
+        return {0, 0, 0};
 
     hue %= 360;
     sat /= 100;
     val /= 100;
 
     uint8_t h = hue / 60;
-    float f = float(hue) / 60 - h;
+    float f = static_cast<float>(hue) / 60 - h;
     float p = val * (1.f - sat);
     float q = val * (1.f - sat * f);
     float t = val * (1.f - sat * (1 - f));
 
     switch (h) {
-        case 1:
-            return {uint8_t(q * 255), uint8_t(val * 255), uint8_t(p * 255)};
-        case 2:
-            return {uint8_t(p * 255), uint8_t(val * 255), uint8_t(t * 255)};
-        case 3:
-            return {uint8_t(p * 255), uint8_t(q * 255), uint8_t(val * 255)};
-        case 4:
-            return {uint8_t(t * 255), uint8_t(p * 255), uint8_t(val * 255)};
-        case 5:
-            return {uint8_t(val * 255), uint8_t(p * 255), uint8_t(q * 255)};
-        default:
-            return {uint8_t(val * 255), uint8_t(t * 255), uint8_t(p * 255)};
+        case 1: return {static_cast<uint8_t>(q * 255), static_cast<uint8_t>(val * 255), static_cast<uint8_t>(p * 255)};
+        case 2: return {static_cast<uint8_t>(p * 255), static_cast<uint8_t>(val * 255), static_cast<uint8_t>(t * 255)};
+        case 3: return {static_cast<uint8_t>(p * 255), static_cast<uint8_t>(q * 255), static_cast<uint8_t>(val * 255)};
+        case 4: return {static_cast<uint8_t>(t * 255), static_cast<uint8_t>(p * 255), static_cast<uint8_t>(val * 255)};
+        case 5: return {static_cast<uint8_t>(val * 255), static_cast<uint8_t>(p * 255), static_cast<uint8_t>(q * 255)};
+        default: return {static_cast<uint8_t>(val * 255), static_cast<uint8_t>(t * 255), static_cast<uint8_t>(p * 255)};
     }
 }
 
@@ -56,7 +51,7 @@ int main() {
     sf::Font font;
 
     if (!font.loadFromFile("../font/font.ttf")) {
-        throw std::runtime_error("Font not found");
+        std::cerr << "Font not found\n";
     }
 
     sf::Text text;
@@ -80,8 +75,8 @@ int main() {
             for (size_t y = 0; y < window_size; y++) {
                 long double px = std::lerp(-2.f, 2.f, static_cast<long double>(x) / window_size);
                 long double py = std::lerp(-2.f, 2.f, static_cast<long double>(y) / window_size);
-                int value = inSet(zoom * std::complex<long double>(py, px) + xyoff, iterations);
-                pixels[x][y] = sf::Color(hsvColor(value, (value == 0) ? 0 : 75, 100));
+                int value = IsInsideSet(zoom * std::complex<long double>(py, px) + xyoff, iterations);
+                pixels[x][y] = hsvColor(value, (value == 0) ? 0 : 75, 100);
             }
         }
     };
@@ -116,14 +111,16 @@ int main() {
             } else if (event.type == sf::Event::MouseButtonPressed) {
                 calculate = true;
                 if (event.mouseButton.button == sf::Mouse::Left) {
-                    xyoff += std::complex<long double>(std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.x) / window_size),
-                                                       std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.y) / window_size))
-                             * zoom;
+                    xyoff += std::complex<long double>(
+                                 std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.x) / window_size),
+                                 std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.y) / window_size)) *
+                             zoom;
                     zoom /= 1.5f;
                 } else if (event.mouseButton.button == sf::Mouse::Right) {
-                    xyoff -= std::complex<long double>(std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.x) / window_size),
-                                                       std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.y) / window_size))
-                             * zoom;
+                    xyoff -= std::complex<long double>(
+                                 std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.x) / window_size),
+                                 std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.y) / window_size)) *
+                             zoom;
                     zoom *= 1.5f;
                 }
             }
@@ -133,7 +130,8 @@ int main() {
 
         if (calculate) {
             for (size_t i = 0; i < render_rows; i++) {
-                futures[i] = std::async(std::launch::async, make_pixels, i * render_rows_size, (i + 1) * render_rows_size);
+                futures[i] =
+                    std::async(std::launch::async, make_pixels, i * render_rows_size, (i + 1) * render_rows_size);
             }
             for (auto& future : futures) {
                 future.wait();
@@ -149,7 +147,7 @@ int main() {
         window.display();
 
         auto text_builder = std::ostringstream();
-        text_builder << std::setw(4) << int(1 / clock.restart().asSeconds()) << " fps\n";
+        text_builder << std::setw(4) << static_cast<int>(1 / clock.restart().asSeconds()) << " fps\n";
         text_builder << std::setw(4) << iterations << " iters\n";
         text_builder << std::setw(4) << zoom << " zoom\n";
         text.setString(text_builder.str());

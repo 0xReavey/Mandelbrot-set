@@ -1,5 +1,5 @@
 #include "mandelbrot.hpp"
-int inSet(std::complex<long double> c, int iterations) {
+int IsInsideSet(std::complex<long double> c, int iterations) {
     std::complex<long double> z{0.f, 0.f};
     for (int i = 0; i < iterations; i++) {
         z = z * z + c;

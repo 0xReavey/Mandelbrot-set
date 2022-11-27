@@ -2,4 +2,4 @@
 
 #include <complex>
 
-int inSet(std::complex<long double>, int);
+int IsInsideSet(std::complex<long double>, int);
