@@ -1,9 +1,9 @@
 #include <SFML/Graphics.hpp>
 #include <array>
 #include <cmath>
-#include <future>
 #include <iomanip>
 #include <iostream>
+#include <thread>
 
 #include "mandelbrot.hpp"
 
@@ -61,13 +61,12 @@ int main() {
     text.setOutlineColor(sf::Color::Black);
 
     int iterations = 250;
-    bool calculate = true;
     long double zoom = 1.f;
     std::complex<long double> xyoff;
     std::array<std::array<sf::Color, window_size>, window_size> pixels;
-    auto futures = std::vector<std::future<void>>(std::thread::hardware_concurrency());
+    auto threads = std::vector<std::thread>(std::thread::hardware_concurrency());
 
-    const size_t render_rows = futures.size();
+    const size_t render_rows = threads.size();
     const size_t render_rows_size = window_size / render_rows;
 
     const auto make_pixels = [&pixels, &zoom, &xyoff, &iterations](const size_t start, const size_t end) {
@@ -88,7 +87,6 @@ int main() {
                 window.close();
             }
             if (event.type == sf::Event::KeyPressed) {
-                calculate = true;
                 if (event.key.code == sf::Keyboard::S) {
                     xyoff = {xyoff.real(), xyoff.imag() + zoom / 27};
                 } else if (event.key.code == sf::Keyboard::W) {
@@ -107,9 +105,10 @@ int main() {
                     iterations -= 25;
                 } else if (event.key.code == sf::Keyboard::P) {
                     output_image.saveToFile("fractal.jpg");
+                } else if (event.key.code == sf::Keyboard::Escape) {
+                    window.close();
                 }
             } else if (event.type == sf::Event::MouseButtonPressed) {
-                calculate = true;
                 if (event.mouseButton.button == sf::Mouse::Left) {
                     xyoff += std::complex<long double>(
                                  std::lerp(-2.f, 2.f, static_cast<long double>(event.mouseButton.x) / window_size),
@@ -128,17 +127,15 @@ int main() {
 
         window.clear();
 
-        if (calculate) {
-            for (size_t i = 0; i < render_rows; i++) {
-                futures[i] =
-                    std::async(std::launch::async, make_pixels, i * render_rows_size, (i + 1) * render_rows_size);
-            }
-            for (auto& future : futures) {
-                future.wait();
-            }
-            output_image.create(window_size, window_size, reinterpret_cast<uint8_t*>(pixels.data()));
-            calculate = false;
+        for (size_t i = 0; i < render_rows; i++) {
+            threads[i] = std::thread(make_pixels, i * render_rows_size, (i + 1) * render_rows_size);
         }
+
+        for (auto& thread : threads) {
+            thread.join();
+        }
+
+        output_image.create(window_size, window_size, reinterpret_cast<uint8_t*>(pixels.data()));
 
         output_texture.update(output_image);
         output_sprite.setTexture(output_texture);

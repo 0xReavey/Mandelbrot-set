@@ -22,4 +22,5 @@ Right-click un-zoom from point.
 Up-Arrow: Increase iterations.
 Down-Arrow: Decrease iterations.
 P: save image in Mandelbrot-set/src/fractal.jpg
+Esq: quit
 ```
